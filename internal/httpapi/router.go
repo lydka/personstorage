@@ -13,10 +13,10 @@ type personStore interface {
 
 func NewMux(personStore personStore) *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /save", func(responseWriter http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc("POST /people", func(responseWriter http.ResponseWriter, request *http.Request) {
 		saveHandler(personStore, responseWriter, request)
 	})
-	mux.HandleFunc("GET /{id}", func(responseWriter http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc("GET /people/{id}", func(responseWriter http.ResponseWriter, request *http.Request) {
 		loadHandler(personStore, responseWriter, request)
 	})
 	return mux

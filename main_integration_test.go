@@ -51,7 +51,7 @@ func TestPersonStorageIntegration(testCase *testing.T) {
 	saveResponse := doRequest(
 		testCase,
 		http.MethodPost,
-		baseURL+"/save",
+		baseURL+"/people",
 		personPayload,
 	)
 	assertStatusCode(testCase, saveResponse, http.StatusCreated)
@@ -62,7 +62,7 @@ func TestPersonStorageIntegration(testCase *testing.T) {
 	loadResponse := doRequest(
 		testCase,
 		http.MethodGet,
-		baseURL+"/integration-person-1",
+		baseURL+"/people/integration-person-1",
 		nil,
 	)
 	assertStatusCode(testCase, loadResponse, http.StatusOK)
@@ -130,7 +130,7 @@ func waitForServer(testCase *testing.T, baseURL string, waitForExit <-chan error
 	deadline := time.Now().Add(5 * time.Second)
 
 	for time.Now().Before(deadline) {
-		response, err := client.Get(baseURL + "/missing-id")
+		response, err := client.Get(baseURL + "/people/missing-id")
 		if err == nil {
 			closeBody(testCase, response.Body)
 			if response.StatusCode == http.StatusNotFound {
@@ -147,7 +147,7 @@ func waitForServer(testCase *testing.T, baseURL string, waitForExit <-chan error
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	testCase.Fatalf("server did not become ready:\n%s", output.String())
+	testCase.Fatalf("server did not become ready:\n%s", output.String())/
 }
 
 func doRequest(testCase *testing.T, method string, url string, payload any) *http.Response {

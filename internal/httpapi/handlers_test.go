@@ -28,7 +28,7 @@ func newTestMux(testCase *testing.T) *http.ServeMux {
 }
 
 func TestPostByIDIsNotAllowed(testCase *testing.T) {
-	request := httptest.NewRequest(http.MethodPost, "/123e4567-e89b-12d3-a456-426614174000", nil)
+	request := httptest.NewRequest(http.MethodPost, "/people/123e4567-e89b-12d3-a456-426614174000", nil)
 	recorder := httptest.NewRecorder()
 
 	newTestMux(testCase).ServeHTTP(recorder, request)
@@ -40,7 +40,7 @@ func TestPostByIDIsNotAllowed(testCase *testing.T) {
 
 func TestPostSaveReturnsCreatedMessage(testCase *testing.T) {
 	body := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"some name","email":"email@email.com","date_of_birth":"2020-01-01T12:12:34+00:00"}`
-	request := httptest.NewRequest(http.MethodPost, "/save", strings.NewReader(body))
+	request := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
 	recorder := httptest.NewRecorder()
 
@@ -65,12 +65,12 @@ func TestPostSaveRejectsDuplicateExternalID(testCase *testing.T) {
 	firstBody := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"some name","email":"email@email.com","date_of_birth":"2020-01-01T12:12:34+00:00"}`
 	secondBody := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"other name","email":"other@email.com","date_of_birth":"2021-01-01T12:12:34+00:00"}`
 
-	firstRequest := httptest.NewRequest(http.MethodPost, "/save", strings.NewReader(firstBody))
+	firstRequest := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader(firstBody))
 	firstRequest.Header.Set("Content-Type", "application/json")
 	firstRecorder := httptest.NewRecorder()
 	mux.ServeHTTP(firstRecorder, firstRequest)
 
-	secondRequest := httptest.NewRequest(http.MethodPost, "/save", strings.NewReader(secondBody))
+	secondRequest := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader(secondBody))
 	secondRequest.Header.Set("Content-Type", "application/json")
 	secondRecorder := httptest.NewRecorder()
 	mux.ServeHTTP(secondRecorder, secondRequest)
@@ -94,12 +94,12 @@ func TestPostSaveRejectsDuplicateEmail(testCase *testing.T) {
 	firstBody := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"some name","email":"email@email.com","date_of_birth":"2020-01-01T12:12:34+00:00"}`
 	secondBody := `{"external_id":"223e4567-e89b-12d3-a456-426614174000","name":"other name","email":"email@email.com","date_of_birth":"2021-01-01T12:12:34+00:00"}`
 
-	firstRequest := httptest.NewRequest(http.MethodPost, "/save", strings.NewReader(firstBody))
+	firstRequest := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader(firstBody))
 	firstRequest.Header.Set("Content-Type", "application/json")
 	firstRecorder := httptest.NewRecorder()
 	mux.ServeHTTP(firstRecorder, firstRequest)
 
-	secondRequest := httptest.NewRequest(http.MethodPost, "/save", strings.NewReader(secondBody))
+	secondRequest := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader(secondBody))
 	secondRequest.Header.Set("Content-Type", "application/json")
 	secondRecorder := httptest.NewRecorder()
 	mux.ServeHTTP(secondRecorder, secondRequest)
@@ -118,16 +118,16 @@ func TestPostSaveRejectsDuplicateEmail(testCase *testing.T) {
 	}
 }
 
-func TestGetByIDReturnsStoredJSON(testCase *testing.T) {
+func TestGetPersonByIDReturnsStoredJSON(testCase *testing.T) {
 	mux := newTestMux(testCase)
 	body := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"some name","email":"email@email.com","date_of_birth":"2020-01-01T12:12:34+00:00"}`
 
-	saveRequest := httptest.NewRequest(http.MethodPost, "/save", strings.NewReader(body))
+	saveRequest := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader(body))
 	saveRequest.Header.Set("Content-Type", "application/json")
 	saveRecorder := httptest.NewRecorder()
 	mux.ServeHTTP(saveRecorder, saveRequest)
 
-	request := httptest.NewRequest(http.MethodGet, "/123e4567-e89b-12d3-a456-426614174000", nil)
+	request := httptest.NewRequest(http.MethodGet, "/people/123e4567-e89b-12d3-a456-426614174000", nil)
 	recorder := httptest.NewRecorder()
 	mux.ServeHTTP(recorder, request)
 
@@ -145,8 +145,8 @@ func TestGetByIDReturnsStoredJSON(testCase *testing.T) {
 	}
 }
 
-func TestGetByIDReturnsNotFoundWhenMissing(testCase *testing.T) {
-	request := httptest.NewRequest(http.MethodGet, "/missing-id", nil)
+func TestGetPersonByIDReturnsNotFoundWhenMissing(testCase *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/people/missing-id", nil)
 	recorder := httptest.NewRecorder()
 
 	newTestMux(testCase).ServeHTTP(recorder, request)
@@ -166,7 +166,7 @@ func TestGetByIDReturnsNotFoundWhenMissing(testCase *testing.T) {
 }
 
 func TestPostSaveRejectsInvalidJSON(testCase *testing.T) {
-	request := httptest.NewRequest(http.MethodPost, "/save", strings.NewReader("{"))
+	request := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader("{"))
 	recorder := httptest.NewRecorder()
 
 	newTestMux(testCase).ServeHTTP(recorder, request)

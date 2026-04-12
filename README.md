@@ -68,7 +68,7 @@ Test the container with `curl`:
 
 ```bash
 curl -i \
-  -X POST http://localhost:8080/save \
+  -X POST http://localhost:8080/people \
   -H 'Content-Type: application/json' \
   -d '{
     "external_id":"docker-person-1",
@@ -77,8 +77,8 @@ curl -i \
     "date_of_birth":"1815-12-10"
   }'
 
-curl -i http://localhost:8080/docker-person-1
-curl -i http://localhost:8080/missing-id
+curl -i http://localhost:8080/people/docker-person-1
+curl -i http://localhost:8080/people/missing-id
 ```
 
 ## Try It With curl
@@ -87,7 +87,7 @@ Create a person:
 
 ```bash
 curl -i \
-  -X POST http://localhost:18080/save \
+  -X POST http://localhost:18080/people \
   -H 'Content-Type: application/json' \
   -d '{
     "external_id":"123e4567-e89b-12d3-a456-426614174000",
@@ -106,7 +106,7 @@ Expected response:
 Fetch that person back:
 
 ```bash
-curl -i http://localhost:18080/123e4567-e89b-12d3-a456-426614174000
+curl -i http://localhost:18080/people/123e4567-e89b-12d3-a456-426614174000
 ```
 
 Expected response:
@@ -118,7 +118,7 @@ Expected response:
 Try a missing record:
 
 ```bash
-curl -i http://localhost:18080/missing-id
+curl -i http://localhost:18080/people/missing-id
 ```
 
 Expected response:
