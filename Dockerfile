@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 RUN apk add --no-cache build-base
 
@@ -11,7 +11,7 @@ COPY . .
 
 RUN CGO_ENABLED=1 GOOS=linux go build -o /out/personstorage .
 
-FROM alpine:3.20
+FROM alpine:3.23
 
 RUN adduser -D -h /app appuser \
 	&& mkdir -p /app/data \
