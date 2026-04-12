@@ -67,6 +67,66 @@ func TestPersonStorageIntegration(testCase *testing.T) {
 	)
 	assertStatusCode(testCase, loadResponse, http.StatusOK)
 	assertJSONBody(testCase, loadResponse, personPayload)
+
+	updatedPayload := map[string]string{
+		"external_id":   "integration-person-1",
+		"name":          "Grace Brewster Hopper",
+		"email":         "grace.brewster.hopper@example.com",
+		"date_of_birth": "1906-12-09",
+	}
+	updateResponse := doRequest(
+		testCase,
+		http.MethodPost,
+		baseURL+"/people",
+		updatedPayload,
+	)
+	assertStatusCode(testCase, updateResponse, http.StatusCreated)
+	assertJSONBody(testCase, updateResponse, map[string]string{
+		"message": "Successfully saved",
+	})
+
+	loadUpdatedResponse := doRequest(
+		testCase,
+		http.MethodGet,
+		baseURL+"/people/integration-person-1",
+		nil,
+	)
+	assertStatusCode(testCase, loadUpdatedResponse, http.StatusOK)
+	assertJSONBody(testCase, loadUpdatedResponse, updatedPayload)
+
+	secondPersonPayload := map[string]string{
+		"external_id":   "integration-person-2",
+		"name":          "Another Person",
+		"email":         "another.person@example.com",
+		"date_of_birth": "1950-01-01",
+	}
+	secondSaveResponse := doRequest(
+		testCase,
+		http.MethodPost,
+		baseURL+"/people",
+		secondPersonPayload,
+	)
+	assertStatusCode(testCase, secondSaveResponse, http.StatusCreated)
+	assertJSONBody(testCase, secondSaveResponse, map[string]string{
+		"message": "Successfully saved",
+	})
+
+	conflictingPayload := map[string]string{
+		"external_id":   "integration-person-3",
+		"name":          "Conflict Person",
+		"email":         "another.person@example.com",
+		"date_of_birth": "1960-01-01",
+	}
+	conflictResponse := doRequest(
+		testCase,
+		http.MethodPost,
+		baseURL+"/people",
+		conflictingPayload,
+	)
+	assertStatusCode(testCase, conflictResponse, http.StatusConflict)
+	assertJSONBody(testCase, conflictResponse, map[string]string{
+		"error": "Person with this email already exists",
+	})
 }
 
 func buildBinary(testCase *testing.T, projectRoot string, binaryPath string) {
@@ -147,7 +207,7 @@ func waitForServer(testCase *testing.T, baseURL string, waitForExit <-chan error
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	testCase.Fatalf("server did not become ready:\n%s", output.String())/
+	testCase.Fatalf("server did not become ready:\n%s", output.String())
 }
 
 func doRequest(testCase *testing.T, method string, url string, payload any) *http.Response {

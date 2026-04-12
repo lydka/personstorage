@@ -60,7 +60,7 @@ func TestPostSaveReturnsCreatedMessage(testCase *testing.T) {
 	}
 }
 
-func TestPostSaveRejectsDuplicateExternalID(testCase *testing.T) {
+func TestPostSaveUpdatesExistingPersonWhenExternalIDMatches(testCase *testing.T) {
 	mux := newTestMux(testCase)
 	firstBody := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"some name","email":"email@email.com","date_of_birth":"2020-01-01T12:12:34+00:00"}`
 	secondBody := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"other name","email":"other@email.com","date_of_birth":"2021-01-01T12:12:34+00:00"}`
@@ -75,17 +75,30 @@ func TestPostSaveRejectsDuplicateExternalID(testCase *testing.T) {
 	secondRecorder := httptest.NewRecorder()
 	mux.ServeHTTP(secondRecorder, secondRequest)
 
-	if secondRecorder.Code != http.StatusConflict {
-		testCase.Fatalf("expected status %d, got %d", http.StatusConflict, secondRecorder.Code)
+	if secondRecorder.Code != http.StatusCreated {
+		testCase.Fatalf("expected status %d, got %d", http.StatusCreated, secondRecorder.Code)
 	}
 
 	if contentType := secondRecorder.Header().Get("Content-Type"); contentType != "application/json" {
 		testCase.Fatalf("expected content type %q, got %q", "application/json", contentType)
 	}
 
-	expectedBody := "{\"error\":\"Person with this external_id already exists\"}\n"
+	expectedBody := "{\"message\":\"Successfully saved\"}\n"
 	if responseBody := secondRecorder.Body.String(); responseBody != expectedBody {
 		testCase.Fatalf("expected body %q, got %q", expectedBody, responseBody)
+	}
+
+	loadRequest := httptest.NewRequest(http.MethodGet, "/people/123e4567-e89b-12d3-a456-426614174000", nil)
+	loadRecorder := httptest.NewRecorder()
+	mux.ServeHTTP(loadRecorder, loadRequest)
+
+	if loadRecorder.Code != http.StatusOK {
+		testCase.Fatalf("expected status %d, got %d", http.StatusOK, loadRecorder.Code)
+	}
+
+	expectedStoredBody := "{\"external_id\":\"123e4567-e89b-12d3-a456-426614174000\",\"name\":\"other name\",\"email\":\"other@email.com\",\"date_of_birth\":\"2021-01-01T12:12:34+00:00\"}\n"
+	if responseBody := loadRecorder.Body.String(); responseBody != expectedStoredBody {
+		testCase.Fatalf("expected body %q, got %q", expectedStoredBody, responseBody)
 	}
 }
 
@@ -115,6 +128,40 @@ func TestPostSaveRejectsDuplicateEmail(testCase *testing.T) {
 	expectedBody := "{\"error\":\"Person with this email already exists\"}\n"
 	if responseBody := secondRecorder.Body.String(); responseBody != expectedBody {
 		testCase.Fatalf("expected body %q, got %q", expectedBody, responseBody)
+	}
+}
+
+func TestPostSaveUpdatesExistingPersonWhenEmailAndExternalIDMatch(testCase *testing.T) {
+	mux := newTestMux(testCase)
+	firstBody := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"some name","email":"email@email.com","date_of_birth":"2020-01-01T12:12:34+00:00"}`
+	secondBody := `{"external_id":"123e4567-e89b-12d3-a456-426614174000","name":"updated name","email":"email@email.com","date_of_birth":"2021-01-01T12:12:34+00:00"}`
+
+	firstRequest := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader(firstBody))
+	firstRequest.Header.Set("Content-Type", "application/json")
+	firstRecorder := httptest.NewRecorder()
+	mux.ServeHTTP(firstRecorder, firstRequest)
+
+	secondRequest := httptest.NewRequest(http.MethodPost, "/people", strings.NewReader(secondBody))
+	secondRequest.Header.Set("Content-Type", "application/json")
+	secondRecorder := httptest.NewRecorder()
+	mux.ServeHTTP(secondRecorder, secondRequest)
+
+	if secondRecorder.Code != http.StatusCreated {
+		testCase.Fatalf("expected status %d, got %d", http.StatusCreated, secondRecorder.Code)
+	}
+
+	expectedBody := "{\"message\":\"Successfully saved\"}\n"
+	if responseBody := secondRecorder.Body.String(); responseBody != expectedBody {
+		testCase.Fatalf("expected body %q, got %q", expectedBody, responseBody)
+	}
+
+	loadRequest := httptest.NewRequest(http.MethodGet, "/people/123e4567-e89b-12d3-a456-426614174000", nil)
+	loadRecorder := httptest.NewRecorder()
+	mux.ServeHTTP(loadRecorder, loadRequest)
+
+	expectedStoredBody := "{\"external_id\":\"123e4567-e89b-12d3-a456-426614174000\",\"name\":\"updated name\",\"email\":\"email@email.com\",\"date_of_birth\":\"2021-01-01T12:12:34+00:00\"}\n"
+	if responseBody := loadRecorder.Body.String(); responseBody != expectedStoredBody {
+		testCase.Fatalf("expected body %q, got %q", expectedStoredBody, responseBody)
 	}
 }
 

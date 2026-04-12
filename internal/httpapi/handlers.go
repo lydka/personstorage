@@ -27,7 +27,7 @@ func saveHandler(personStore personStore, responseWriter http.ResponseWriter, re
 	}
 
 	if err := personStore.Save(request.Context(), payload); err != nil {
-		if errors.Is(err, store.ErrDuplicateExternalID) || errors.Is(err, store.ErrDuplicateEmail) {
+		if errors.Is(err, store.ErrDuplicateEmail) {
 			writeJSON(responseWriter, http.StatusConflict, errorResponse{Error: err.Error()})
 			return
 		}
