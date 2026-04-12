@@ -42,6 +42,45 @@ If you want a different SQLite file:
 DATABASE_PATH=/tmp/personstorage.db ./bin/personstorage
 ```
 
+## Docker
+
+Build the image:
+
+```bash
+docker build -t personstorage .
+```
+
+Run the container and expose the HTTP server on `localhost:8080`:
+
+```bash
+docker run --rm -p 8080:8080 personstorage
+```
+
+If you want the SQLite database to persist outside the container:
+
+```bash
+docker run --rm -p 8080:8080 \
+  -v "$(pwd)/data:/app/data" \
+  personstorage
+```
+
+Test the container with `curl`:
+
+```bash
+curl -i \
+  -X POST http://localhost:8080/save \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "external_id":"docker-person-1",
+    "name":"Ada Lovelace",
+    "email":"ada.docker@example.com",
+    "date_of_birth":"1815-12-10"
+  }'
+
+curl -i http://localhost:8080/docker-person-1
+curl -i http://localhost:8080/missing-id
+```
+
 ## Try It With curl
 
 Create a person:

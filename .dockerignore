@@ -1,0 +1,6 @@
+.git
+.cache
+.idea
+.oca
+bin
+data/app.db
