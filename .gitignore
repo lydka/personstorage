@@ -1,0 +1,6 @@
+/.cache/
+/bin/
+/data/app.db
+/.idea/
+/.oca/
+.DS_Store
