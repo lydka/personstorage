@@ -7,7 +7,7 @@ import (
 )
 
 type personStore interface {
-	Save(ctx context.Context, person domain.Person) error
+	Upsert(ctx context.Context, person domain.Person) error
 	Get(ctx context.Context, externalID string) (domain.Person, error)
 }
 

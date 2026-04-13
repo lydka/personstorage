@@ -26,7 +26,7 @@ func saveHandler(personStore personStore, responseWriter http.ResponseWriter, re
 		return
 	}
 
-	if err := personStore.Save(request.Context(), payload); err != nil {
+	if err := personStore.Upsert(request.Context(), payload); err != nil {
 		if errors.Is(err, store.ErrDuplicateEmail) {
 			writeJSON(responseWriter, http.StatusConflict, errorResponse{Error: err.Error()})
 			return

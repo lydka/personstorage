@@ -13,7 +13,8 @@ var ErrUserNotFound = errors.New("Person not found")
 var ErrDuplicateEmail = errors.New("Person with this email already exists")
 
 type Store struct {
-	db *gorm.DB
+	db             *gorm.DB
+	getSQLDatabase func(*gorm.DB) (sqlDatabaseCloser, error)
 }
 
 func (store *Store) Get(requestContext context.Context, externalID string) (domain.Person, error) {
@@ -30,7 +31,7 @@ func (store *Store) Get(requestContext context.Context, externalID string) (doma
 	return person, nil
 }
 
-func (store *Store) Save(requestContext context.Context, input domain.Person) error {
+func (store *Store) Upsert(requestContext context.Context, input domain.Person) error {
 	return store.db.WithContext(requestContext).Transaction(func(databaseTransaction *gorm.DB) error {
 		person, err := findPerson(databaseTransaction, input.ExternalID)
 		if err != nil {
